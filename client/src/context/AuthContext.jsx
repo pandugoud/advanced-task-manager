@@ -3,12 +3,24 @@ import api, { setAuthToken } from "../api/api";
 
 const AuthContext = createContext(null);
 
+function getStoredUser() {
+  try {
+    const saved = localStorage.getItem("atm_user");
+
+    if (!saved || saved === "undefined" || saved === "null") {
+      return null;
+    }
+
+    return JSON.parse(saved);
+  } catch (error) {
+    localStorage.removeItem("atm_user");
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("atm_token") || "");
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("atm_user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(getStoredUser);
 
   useEffect(() => {
     setAuthToken(token);
@@ -18,22 +30,24 @@ export function AuthProvider({ children }) {
     const response = await api.post("/auth/login", formData);
     const data = response.data;
 
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("atm_token", data.token);
-    localStorage.setItem("atm_user", JSON.stringify(data.user));
-    setAuthToken(data.token);
+    setToken(data.token || "");
+    setUser(data.user || null);
+
+    localStorage.setItem("atm_token", data.token || "");
+    localStorage.setItem("atm_user", JSON.stringify(data.user || null));
+    setAuthToken(data.token || "");
   }
 
   async function register(formData) {
     const response = await api.post("/auth/register", formData);
     const data = response.data;
 
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("atm_token", data.token);
-    localStorage.setItem("atm_user", JSON.stringify(data.user));
-    setAuthToken(data.token);
+    setToken(data.token || "");
+    setUser(data.user || null);
+
+    localStorage.setItem("atm_token", data.token || "");
+    localStorage.setItem("atm_user", JSON.stringify(data.user || null));
+    setAuthToken(data.token || "");
   }
 
   function logout() {
