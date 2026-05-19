@@ -1,3 +1,4 @@
+// src/pages/DashboardPage.js
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import Navbar from "../components/Navbar";
@@ -6,31 +7,19 @@ import TaskList from "../components/TaskList";
 import TaskFilters from "../components/TaskFilters";
 import SummaryCards from "../components/SummaryCards";
 
-const defaultSummary = {
-  total: 0,
-  todo: 0,
-  inprogress: 0,
-  done: 0,
-  high: 0,
-};
+const defaultSummary = { total: 0, todo: 0, inprogress: 0, done: 0, high: 0 };
 
 export default function DashboardPage() {
   const [tasks, setTasks] = useState([]);
   const [summary, setSummary] = useState(defaultSummary);
-  const [filters, setFilters] = useState({
-    status: "",
-    priority: "",
-    q: "",
-  });
+  const [filters, setFilters] = useState({ status: "", priority: "", q: "" });
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   function showMessage(type, text) {
     setMessage({ type, text });
-    setTimeout(() => {
-      setMessage({ type: "", text: "" });
-    }, 2500);
+    setTimeout(() => setMessage({ type: "", text: "" }), 2500);
   }
 
   async function fetchTasks(customFilters = filters) {
@@ -88,9 +77,7 @@ export default function DashboardPage() {
   async function handleDeleteTask(taskId) {
     try {
       await api.delete(`/tasks/${taskId}`);
-      if (editingTask?._id === taskId) {
-        setEditingTask(null);
-      }
+      if (editingTask?._id === taskId) setEditingTask(null);
       showMessage("success", "Task deleted successfully");
       fetchTasks();
     } catch (error) {
@@ -136,9 +123,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {message.text ? (
-          <div className={`flash-message ${message.type}`}>{message.text}</div>
-        ) : null}
+        {message.text && <div className={`flash-message ${message.type}`}>{message.text}</div>}
 
         <SummaryCards summary={summary || defaultSummary} />
         <TaskFilters filters={filters} onApply={handleApplyFilters} />
