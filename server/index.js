@@ -9,7 +9,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://advanced-task-manager-client.onrender.com",
+  "https://advanced-task-manager-ky47.onrender.com",
 ];
 
 app.use(
