@@ -3,6 +3,18 @@ import api, { setAuthToken } from "../api/api";
 
 const AuthContext = createContext(null);
 
+function getStoredToken() {
+  try {
+    const token = localStorage.getItem("atm_token");
+    if (!token || token === "undefined" || token === "null") {
+      return "";
+    }
+    return token;
+  } catch (error) {
+    return "";
+  }
+}
+
 function getStoredUser() {
   try {
     const saved = localStorage.getItem("atm_user");
@@ -19,8 +31,8 @@ function getStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem("atm_token") || "");
-  const [user, setUser] = useState(getStoredUser);
+  const [token, setToken] = useState(() => getStoredToken());
+  const [user, setUser] = useState(() => getStoredUser());
 
   useEffect(() => {
     setAuthToken(token);
@@ -30,24 +42,50 @@ export function AuthProvider({ children }) {
     const response = await api.post("/auth/login", formData);
     const data = response.data;
 
-    setToken(data.token || "");
-    setUser(data.user || null);
+    const safeToken = data?.token || "";
+    const safeUser = data?.user || null;
 
-    localStorage.setItem("atm_token", data.token || "");
-    localStorage.setItem("atm_user", JSON.stringify(data.user || null));
-    setAuthToken(data.token || "");
+    setToken(safeToken);
+    setUser(safeUser);
+
+    if (safeToken) {
+      localStorage.setItem("atm_token", safeToken);
+    } else {
+      localStorage.removeItem("atm_token");
+    }
+
+    if (safeUser) {
+      localStorage.setItem("atm_user", JSON.stringify(safeUser));
+    } else {
+      localStorage.removeItem("atm_user");
+    }
+
+    setAuthToken(safeToken);
   }
 
   async function register(formData) {
     const response = await api.post("/auth/register", formData);
     const data = response.data;
 
-    setToken(data.token || "");
-    setUser(data.user || null);
+    const safeToken = data?.token || "";
+    const safeUser = data?.user || null;
 
-    localStorage.setItem("atm_token", data.token || "");
-    localStorage.setItem("atm_user", JSON.stringify(data.user || null));
-    setAuthToken(data.token || "");
+    setToken(safeToken);
+    setUser(safeUser);
+
+    if (safeToken) {
+      localStorage.setItem("atm_token", safeToken);
+    } else {
+      localStorage.removeItem("atm_token");
+    }
+
+    if (safeUser) {
+      localStorage.setItem("atm_user", JSON.stringify(safeUser));
+    } else {
+      localStorage.removeItem("atm_user");
+    }
+
+    setAuthToken(safeToken);
   }
 
   function logout() {
