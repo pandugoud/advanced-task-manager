@@ -6,15 +6,17 @@ import TaskList from "../components/TaskList";
 import TaskFilters from "../components/TaskFilters";
 import SummaryCards from "../components/SummaryCards";
 
+const defaultSummary = {
+  total: 0,
+  todo: 0,
+  inprogress: 0,
+  done: 0,
+  high: 0,
+};
+
 export default function DashboardPage() {
   const [tasks, setTasks] = useState([]);
-  const [summary, setSummary] = useState({
-    total: 0,
-    todo: 0,
-    inprogress: 0,
-    done: 0,
-    high: 0,
-  });
+  const [summary, setSummary] = useState(defaultSummary);
   const [filters, setFilters] = useState({
     status: "",
     priority: "",
@@ -22,14 +24,10 @@ export default function DashboardPage() {
   });
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({
-    type: "",
-    text: "",
-  });
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   function showMessage(type, text) {
     setMessage({ type, text });
-
     setTimeout(() => {
       setMessage({ type: "", text: "" });
     }, 2500);
@@ -39,26 +37,21 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const params = {};
-      if (customFilters.status) params.status = customFilters.status;
-      if (customFilters.priority) params.priority = customFilters.priority;
-      if (customFilters.q) params.q = customFilters.q;
+      if (customFilters?.status) params.status = customFilters.status;
+      if (customFilters?.priority) params.priority = customFilters.priority;
+      if (customFilters?.q) params.q = customFilters.q;
 
       const [tasksRes, summaryRes] = await Promise.all([
         api.get("/tasks", { params }),
         api.get("/tasks/summary"),
       ]);
 
-      setTasks(tasksRes.data.tasks || []);
-      setSummary(
-        summaryRes.data.summary || {
-          total: 0,
-          todo: 0,
-          inprogress: 0,
-          done: 0,
-          high: 0,
-        }
-      );
+      setTasks(Array.isArray(tasksRes?.data?.tasks) ? tasksRes.data.tasks : []);
+      setSummary(summaryRes?.data?.summary || defaultSummary);
     } catch (error) {
+      console.error("Dashboard fetch error:", error);
+      setTasks([]);
+      setSummary(defaultSummary);
       showMessage("error", "Failed to load dashboard data");
     } finally {
       setLoading(false);
@@ -75,6 +68,7 @@ export default function DashboardPage() {
       showMessage("success", "Task created successfully");
       fetchTasks();
     } catch (error) {
+      console.error("Create task error:", error);
       showMessage("error", error.response?.data?.message || "Failed to create task");
     }
   }
@@ -86,6 +80,7 @@ export default function DashboardPage() {
       showMessage("success", "Task updated successfully");
       fetchTasks();
     } catch (error) {
+      console.error("Update task error:", error);
       showMessage("error", error.response?.data?.message || "Failed to update task");
     }
   }
@@ -99,6 +94,7 @@ export default function DashboardPage() {
       showMessage("success", "Task deleted successfully");
       fetchTasks();
     } catch (error) {
+      console.error("Delete task error:", error);
       showMessage("error", error.response?.data?.message || "Failed to delete task");
     }
   }
@@ -109,6 +105,7 @@ export default function DashboardPage() {
       showMessage("success", "Task status updated");
       fetchTasks();
     } catch (error) {
+      console.error("Status update error:", error);
       showMessage("error", error.response?.data?.message || "Failed to update status");
     }
   }
@@ -119,7 +116,7 @@ export default function DashboardPage() {
   }
 
   function handleEditClick(task) {
-    setEditingTask(task);
+    setEditingTask(task || null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -143,8 +140,7 @@ export default function DashboardPage() {
           <div className={`flash-message ${message.type}`}>{message.text}</div>
         ) : null}
 
-        <SummaryCards summary={summary} />
-
+        <SummaryCards summary={summary || defaultSummary} />
         <TaskFilters filters={filters} onApply={handleApplyFilters} />
 
         <TaskForm
@@ -155,7 +151,7 @@ export default function DashboardPage() {
         />
 
         <TaskList
-          tasks={tasks}
+          tasks={Array.isArray(tasks) ? tasks : []}
           loading={loading}
           onDelete={handleDeleteTask}
           onStatusChange={handleStatusChange}
