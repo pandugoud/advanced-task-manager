@@ -12,7 +12,7 @@ export default function App() {
     <Routes>
       <Route
         path="/"
-        element={token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+        element={<Navigate to={token ? "/dashboard" : "/login"} replace />}
       />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
