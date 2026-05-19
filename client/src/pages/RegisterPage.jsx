@@ -1,3 +1,4 @@
+// src/pages/RegisterPage.js
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -6,19 +7,12 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function handleChange(e) {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
   async function handleSubmit(e) {
@@ -30,7 +24,7 @@ export default function RegisterPage() {
       await register(formData);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -43,33 +37,13 @@ export default function RegisterPage() {
         <p className="auth-subtitle">Start organizing your work with clarity.</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full name"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email address"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <input type="text" name="name" placeholder="Full name" value={formData.name} onChange={handleChange} required />
+          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+          <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
 
-          {error ? <p className="error-text">{error}</p> : null}
+          {error && <p className="error-text">{error}</p>}
 
-          <button type="submit" className="primary-btn" disabled={loading}>
-            {loading ? "Creating..." : "Create Account"}
-          </button>
+          <button type="submit" className="primary-btn" disabled={loading}>{loading ? "Creating..." : "Create Account"}</button>
         </form>
 
         <p className="auth-switch">
