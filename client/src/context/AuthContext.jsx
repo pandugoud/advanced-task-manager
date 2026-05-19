@@ -1,3 +1,4 @@
+// src/context/AuthContext.js
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api, { setAuthToken } from "../api/api";
 
@@ -5,12 +6,10 @@ const AuthContext = createContext(null);
 
 function getStoredToken() {
   try {
-    const token = localStorage.getItem("atm_token");
-    if (!token || token === "undefined" || token === "null") {
-      return "";
-    }
-    return token;
-  } catch (error) {
+    const t = localStorage.getItem("atm_token");
+    if (!t || t === "undefined" || t === "null") return "";
+    return t;
+  } catch {
     return "";
   }
 }
@@ -18,13 +17,9 @@ function getStoredToken() {
 function getStoredUser() {
   try {
     const saved = localStorage.getItem("atm_user");
-
-    if (!saved || saved === "undefined" || saved === "null") {
-      return null;
-    }
-
+    if (!saved || saved === "undefined" || saved === "null") return null;
     return JSON.parse(saved);
-  } catch (error) {
+  } catch {
     localStorage.removeItem("atm_user");
     return null;
   }
@@ -39,53 +34,57 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login(formData) {
-    const response = await api.post("/auth/login", formData);
-    const data = response.data;
+    try {
+      const res = await api.post("/auth/login", formData);
+      let data = res.data;
+      if (typeof data === "string") {
+        try { data = JSON.parse(data); } catch { data = {}; }
+      }
 
-    const safeToken = data?.token || "";
-    const safeUser = data?.user || null;
+      const safeToken = data?.token || "";
+      const safeUser = data?.user || null;
 
-    setToken(safeToken);
-    setUser(safeUser);
+      setToken(safeToken);
+      setUser(safeUser);
 
-    if (safeToken) {
-      localStorage.setItem("atm_token", safeToken);
-    } else {
-      localStorage.removeItem("atm_token");
+      if (safeToken) localStorage.setItem("atm_token", safeToken);
+      else localStorage.removeItem("atm_token");
+
+      if (safeUser) localStorage.setItem("atm_user", JSON.stringify(safeUser));
+      else localStorage.removeItem("atm_user");
+
+      setAuthToken(safeToken);
+
+    } catch (err) {
+      throw new Error(err?.response?.data?.message || "Login failed");
     }
-
-    if (safeUser) {
-      localStorage.setItem("atm_user", JSON.stringify(safeUser));
-    } else {
-      localStorage.removeItem("atm_user");
-    }
-
-    setAuthToken(safeToken);
   }
 
   async function register(formData) {
-    const response = await api.post("/auth/register", formData);
-    const data = response.data;
+    try {
+      const res = await api.post("/auth/register", formData);
+      let data = res.data;
+      if (typeof data === "string") {
+        try { data = JSON.parse(data); } catch { data = {}; }
+      }
 
-    const safeToken = data?.token || "";
-    const safeUser = data?.user || null;
+      const safeToken = data?.token || "";
+      const safeUser = data?.user || null;
 
-    setToken(safeToken);
-    setUser(safeUser);
+      setToken(safeToken);
+      setUser(safeUser);
 
-    if (safeToken) {
-      localStorage.setItem("atm_token", safeToken);
-    } else {
-      localStorage.removeItem("atm_token");
+      if (safeToken) localStorage.setItem("atm_token", safeToken);
+      else localStorage.removeItem("atm_token");
+
+      if (safeUser) localStorage.setItem("atm_user", JSON.stringify(safeUser));
+      else localStorage.removeItem("atm_user");
+
+      setAuthToken(safeToken);
+
+    } catch (err) {
+      throw new Error(err?.response?.data?.message || "Registration failed");
     }
-
-    if (safeUser) {
-      localStorage.setItem("atm_user", JSON.stringify(safeUser));
-    } else {
-      localStorage.removeItem("atm_user");
-    }
-
-    setAuthToken(safeToken);
   }
 
   function logout() {
@@ -96,16 +95,7 @@ export function AuthProvider({ children }) {
     setAuthToken("");
   }
 
-  const value = useMemo(
-    () => ({
-      token,
-      user,
-      login,
-      register,
-      logout,
-    }),
-    [token, user]
-  );
+  const value = useMemo(() => ({ token, user, login, register, logout }), [token, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
