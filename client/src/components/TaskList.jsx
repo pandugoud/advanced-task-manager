@@ -5,7 +5,7 @@ function statusLabel(status) {
 }
 
 export default function TaskList({
-  tasks,
+  tasks = [],
   loading,
   onDelete,
   onStatusChange,
@@ -26,41 +26,49 @@ export default function TaskList({
 
   return (
     <section className="task-list-grid">
-      {tasks.map((task) => (
-        <article key={task._id} className="task-card">
-          <div className="task-card-top">
-            <div>
-              <h3>{task.title}</h3>
-              <p>{task.description || "No description added."}</p>
+      {tasks.map((task) => {
+        const dueDateText = task?.dueDate
+          ? new Date(task.dueDate).toISOString().slice(0, 10)
+          : "No due date";
+
+        return (
+          <article key={task?._id} className="task-card">
+            <div className="task-card-top">
+              <div>
+                <h3>{task?.title || "Untitled task"}</h3>
+                <p>{task?.description || "No description added."}</p>
+              </div>
+              <span className={`priority-badge ${task?.priority || "medium"}`}>
+                {task?.priority || "medium"}
+              </span>
             </div>
-            <span className={`priority-badge ${task.priority}`}>{task.priority}</span>
-          </div>
 
-          <div className="task-meta">
-            <span>Status: {statusLabel(task.status)}</span>
-            <span>Due: {task.dueDate ? task.dueDate.slice(0, 10) : "No due date"}</span>
-          </div>
+            <div className="task-meta">
+              <span>Status: {statusLabel(task?.status)}</span>
+              <span>Due: {dueDateText}</span>
+            </div>
 
-          <div className="task-actions">
-            <select
-              value={task.status}
-              onChange={(e) => onStatusChange(task._id, e.target.value)}
-            >
-              <option value="todo">To Do</option>
-              <option value="inprogress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
+            <div className="task-actions">
+              <select
+                value={task?.status || "todo"}
+                onChange={(e) => onStatusChange(task?._id, e.target.value)}
+              >
+                <option value="todo">To Do</option>
+                <option value="inprogress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
 
-            <button className="secondary-btn" onClick={() => onEdit(task)}>
-              Edit
-            </button>
+              <button className="secondary-btn" onClick={() => onEdit(task)}>
+                Edit
+              </button>
 
-            <button className="danger-btn" onClick={() => onDelete(task._id)}>
-              Delete
-            </button>
-          </div>
-        </article>
-      ))}
+              <button className="danger-btn" onClick={() => onDelete(task?._id)}>
+                Delete
+              </button>
+            </div>
+          </article>
+        );
+      })}
     </section>
   );
 }
